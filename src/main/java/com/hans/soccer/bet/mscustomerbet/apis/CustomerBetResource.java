@@ -2,8 +2,10 @@ package com.hans.soccer.bet.mscustomerbet.apis;
 
 import com.hans.soccer.bet.mscustomerbet.documents.CustomerBet;
 import com.hans.soccer.bet.mscustomerbet.dtos.PrognosticUpdateDTO;
+import com.hans.soccer.bet.mscustomerbet.dtos.StatusUpdateDTO;
 import com.hans.soccer.bet.mscustomerbet.enums.Status;
 import com.hans.soccer.bet.mscustomerbet.services.CustomerBetService;
+import com.hans.soccer.bet.mscustomerbet.strategies.ChangeStatusResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -130,6 +132,49 @@ public class CustomerBetResource {
             customerBetService.save(updated);
 
             return ResponseEntity.ok(Collections.singletonMap("msg", "Update prognostic with successful"));
+        } catch (Exception exception) {
+            String err = exception.getMessage();
+
+            return ResponseEntity.internalServerError().body(Collections.singletonMap("error", err));
+        }
+    }
+
+    @PutMapping("/update-status")
+    ResponseEntity<?> updateStatus (@RequestBody StatusUpdateDTO statusUpdateDTO) {
+        try {
+            if (Optional.ofNullable(statusUpdateDTO.getCustomerBetId()).isEmpty()) {
+                String badRequest = "Customer Bet ID is mandatory";
+
+                return ResponseEntity.badRequest().body(Collections.singletonMap("error", badRequest));
+            }
+
+            Optional<CustomerBet> optionalCustomerBet = customerBetService.findCustomerBetId(statusUpdateDTO.getCustomerBetId());
+
+            if (optionalCustomerBet.isEmpty()) {
+                String notFound = "Customer Bet ID " + statusUpdateDTO.getCustomerBetId() + " Not found is own database";
+
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", notFound));
+            }
+
+            Optional<ChangeStatusResponse> optionalChangeStatus = customerBetService
+                    .updateStatus(optionalCustomerBet.get(), statusUpdateDTO.getStatus());
+
+            if (optionalChangeStatus.isEmpty()) {
+                String internalError = "An unexpected error have occurred";
+
+                return ResponseEntity
+                        .internalServerError()
+                        .body(Collections.singletonMap("error", internalError));
+            }
+
+            ChangeStatusResponse changeStatusResponse = optionalChangeStatus.get();
+            if (changeStatusResponse.getCodeError() != null) {
+                return ResponseEntity
+                        .status(changeStatusResponse.getCodeError())
+                        .body(Collections.singletonMap("error", changeStatusResponse.getError()));
+            }
+
+            return ResponseEntity.ok(Collections.singletonMap("msg", changeStatusResponse.getMessageUpdated()));
         } catch (Exception exception) {
             String err = exception.getMessage();
 

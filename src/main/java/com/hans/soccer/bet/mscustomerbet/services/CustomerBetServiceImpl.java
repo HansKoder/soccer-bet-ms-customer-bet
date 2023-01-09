@@ -1,7 +1,11 @@
 package com.hans.soccer.bet.mscustomerbet.services;
 
 import com.hans.soccer.bet.mscustomerbet.documents.CustomerBet;
+import com.hans.soccer.bet.mscustomerbet.enums.Status;
 import com.hans.soccer.bet.mscustomerbet.repositories.CustomerBetRepository;
+import com.hans.soccer.bet.mscustomerbet.strategies.ChangeStatus;
+import com.hans.soccer.bet.mscustomerbet.strategies.ChangeStatusFactory;
+import com.hans.soccer.bet.mscustomerbet.strategies.ChangeStatusResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +17,9 @@ public class CustomerBetServiceImpl implements CustomerBetService{
 
     @Autowired
     private CustomerBetRepository customerBetRepository;
+
+    @Autowired
+    private ChangeStatusFactory factory;
 
     @Override
     public CustomerBet save(CustomerBet entity) {
@@ -37,5 +44,11 @@ public class CustomerBetServiceImpl implements CustomerBetService{
     @Override
     public List<CustomerBet> findCustomerBetsByBet(String betId) {
         return customerBetRepository.findPrognosticByBetId(betId);
+    }
+
+    @Override
+    public Optional<ChangeStatusResponse> updateStatus(CustomerBet customerBet, Status status) {
+        ChangeStatus changeStatus = factory.find(status);
+        return Optional.ofNullable(changeStatus.updated(customerBet));
     }
 }
