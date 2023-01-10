@@ -1,6 +1,7 @@
 package com.hans.soccer.bet.mscustomerbet.documents;
 
 import com.hans.soccer.bet.mscustomerbet.enums.Status;
+import com.hans.soccer.bet.mscustomerbet.models.BetResult;
 import com.hans.soccer.bet.mscustomerbet.models.Customer;
 import com.hans.soccer.bet.mscustomerbet.models.Prognostic;
 import org.springframework.data.annotation.Id;
@@ -19,6 +20,8 @@ public class CustomerBet {
     private Double betPayment;
 
     private Status status;
+
+    private BetResult betResult;
 
     public CustomerBet() {
         this.status = Status.PLAY;
@@ -70,5 +73,13 @@ public class CustomerBet {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public BetResult getBetResult() {
+        return betResult;
+    }
+
+    public void setBetResult(BetResult betResult) {
+        this.betResult = betResult;
     }
 }
